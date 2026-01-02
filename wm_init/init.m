@@ -382,7 +382,7 @@ static JSValue *foundationToJS(id obj, JSContext *context) {
     return [JSValue valueWithObject:[obj description] inContext:context];
 }
 
-const char * MANTLE_SERVICE_NAME = "com.mantle.connect";
+const char * MANTLE_SERVICE_NAME = "com.corebedtime.mantle.connect";
 
 const char* SessionGetEnvironment(const char *name);
 int64_t SessionSetEnvironment(const char *name, const char *value);
@@ -588,7 +588,9 @@ int main(int argc, char **argv) {
     // Create and start the Mach service
     gServer = mantle_server_create(MANTLE_SERVICE_NAME);
     if (!gServer) {
-        fprintf(stderr, "Failed to create Mach service\n");
+        fprintf(stderr, "Failed to create Mach service '%s'\n", MANTLE_SERVICE_NAME);
+        fprintf(stderr, "This may be due to the service already being registered.\n");
+        fprintf(stderr, "Try unloading the launch agent and restarting.\n");
         return 1;
     }
 
@@ -672,6 +674,8 @@ int main(int argc, char **argv) {
     }
 
     // Set config path if provided
+    NSString *fallbackPath = @"/opt/mantle/fallback.js";
+    
     if (argc > 1) {
         gConfigPath = [NSString stringWithUTF8String:argv[1]];
 
@@ -681,7 +685,26 @@ int main(int argc, char **argv) {
                            stringByAppendingPathComponent:gConfigPath];
         }
 
-        printf("Config file: %s\n", gConfigPath.UTF8String);
+        // Check if the specified config file exists
+        if (![[NSFileManager defaultManager] fileExistsAtPath:gConfigPath]) {
+            printf("Config file not found: %s\n", gConfigPath.UTF8String);
+            // Fall back to fallback.js if it exists
+            if ([[NSFileManager defaultManager] fileExistsAtPath:fallbackPath]) {
+                gConfigPath = fallbackPath;
+                printf("Using fallback: %s\n", gConfigPath.UTF8String);
+            } else {
+                gConfigPath = nil;
+                printf("Warning: fallback.js also not found\n");
+            }
+        } else {
+            printf("Config file: %s\n", gConfigPath.UTF8String);
+        }
+    } else {
+        // Use fallback.js if no config specified
+        if ([[NSFileManager defaultManager] fileExistsAtPath:fallbackPath]) {
+            gConfigPath = fallbackPath;
+            printf("No config specified, using fallback: %s\n", gConfigPath.UTF8String);
+        }
     }
 
     // Setup JavaScript context and load scripts

@@ -4,7 +4,7 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BUILD_DIR="$SCRIPT_DIR/build"
 INSTALL_PREFIX="/opt/mantle"
-LAUNCHDEST="$HOME/Library/LaunchAgents/com.mantle.tool.plist"
+LAUNCHDEST="$HOME/Library/LaunchAgents/com.corebedtime.mantle.tool.plist"
 LOG_DIR="$HOME/Library/Logs/Mantle"
 
 echo "Will do installation script"
@@ -55,9 +55,17 @@ sudo cp -r "$SCRIPT_DIR/wm_std_lib" "$INSTALL_PREFIX/"
 sudo chown -R root:wheel "$INSTALL_PREFIX/wm_std_lib"
 sudo chmod -R 755 "$INSTALL_PREFIX/wm_std_lib"
 
+echo "Installing fallback.js to $INSTALL_PREFIX/fallback.js..."
+if [ -f "$SCRIPT_DIR/fallback.js" ]; then
+    sudo cp "$SCRIPT_DIR/fallback.js" "$INSTALL_PREFIX/fallback.js"
+    sudo chmod 644 "$INSTALL_PREFIX/fallback.js"
+else
+    echo "Warning: fallback.js not found in $SCRIPT_DIR, skipping"
+fi
+
 # Unload existing instance if running
 echo "Checking for existing instance..."
-if launchctl list | grep -q "com.mantle.tool"; then
+if launchctl list | grep -q "com.corebedtime.mantle.tool"; then
     echo "Unloading existing mantle launch agent..."
     launchctl unload "$LAUNCHDEST" 2>/dev/null || true
 fi
@@ -71,12 +79,12 @@ cat > "$LAUNCHDEST" << EOF
 <plist version="1.0">
 <dict>
     <key>Label</key>
-    <string>com.mantle.tool</string>
+    <string>com.corebedtime.mantle.tool</string>
     <key>ProgramArguments</key>
     <array>
         <string>/bin/sh</string>
         <string>-c</string>
-        <string>/usr/bin/sudo -n /opt/mantle/bin/mantle /Users/bedtime/Developer/Mantle/example_springy.js</string>
+        <string>/usr/bin/sudo -n /opt/mantle/bin/mantle /Users/$(whoami)/Developer/Mantle/example_springy.js</string>
     </array>
     <key>RunAtLoad</key>
     <true/>

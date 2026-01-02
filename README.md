@@ -13,10 +13,14 @@ macOS IPC/FFI thing that runs JS to mess with windows and allow scripting in oth
 
 ## Quick start
 
+## See [Build requirements](#build-requirements)
+
 ```bash
 ./fetch_dobby.sh
 ./build.sh
+./install.sh
 ./build/mantle your_script.js
+sudo tail -f ~/Library/Logs/Mantle/mantle.log ~/Library/Logs/Mantle/mantle.err
 ```
 
 ## WindowManager API
