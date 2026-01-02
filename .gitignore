@@ -1,0 +1,7 @@
+build/
+lib*.a
+.cache/
+include/dobby.h
+libdobby.a
+compile_commands.json
+.DS_Store
