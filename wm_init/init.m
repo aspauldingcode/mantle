@@ -514,12 +514,7 @@ static int SetupDyldAction(void *context) {
     (void)context; // Unused
     if (SessionGetEnvironment("DYLD_INSERT_LIBRARIES") == NULL) {
         printf("Setting DYLD_INSERT_LIBRARIES...\n");
-        char exePath[PATH_MAX];
-        uint32_t size = sizeof(exePath);
-        _NSGetExecutablePath(exePath, &size);
-        NSString *libPath = [[[NSString stringWithUTF8String:exePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"libcore.dylib"];
-
-        if (SessionSetEnvironment("DYLD_INSERT_LIBRARIES", libPath.UTF8String) != 0) {
+        if (SessionSetEnvironment("DYLD_INSERT_LIBRARIES", "/opt/mantle/libcore.dylib") != 0) {
             return 1;
         }
     } else {
@@ -668,16 +663,7 @@ int main(int argc, char **argv) {
 
     printf("Mach service '%s' started successfully\n", MANTLE_SERVICE_NAME);
 
-    // Determine stdlib path
-    NSString *execPath = [NSString stringWithUTF8String:argv[0]];
-    NSString *execDir = [execPath stringByDeletingLastPathComponent];
-    gStdlibPath = [execDir stringByAppendingPathComponent:@"wm_std_lib/windowmanager.js"];
-
-    // Also check in parent directory (for running from build/)
-    if (![[NSFileManager defaultManager] fileExistsAtPath:gStdlibPath]) {
-        gStdlibPath = [[execDir stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"wm_std_lib/windowmanager.js"];
-    }
-
+    gStdlibPath = [@"/opt/mantle/" stringByAppendingPathComponent:@"wm_std_lib/windowmanager.js"];
     if ([[NSFileManager defaultManager] fileExistsAtPath:gStdlibPath]) {
         printf("Found stdlib: %s\n", gStdlibPath.UTF8String);
     } else {
